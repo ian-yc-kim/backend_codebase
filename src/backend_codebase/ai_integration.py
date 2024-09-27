@@ -85,16 +85,44 @@ def generate_content(prompt):
     )
 
 class AIIntegration:
+    """
+    A class to manage the integration with the AI model for generating new content based on the current state and user feedback.
+
+    Attributes:
+    current_state (str): The current state of the content.
+    user_feedback (str): The feedback provided by the user.
+    """
     def __init__(self):
+        """
+        Initializes the AIIntegration class with default values for current state and user feedback.
+        """
         self.current_state = ""
         self.user_feedback = ""
 
     def update_state(self, new_state):
+        """
+        Updates the current state with the provided new state.
+
+        Args:
+        new_state (str): The new state to update.
+        """
         self.current_state = new_state
 
     def update_feedback(self, feedback):
+        """
+        Updates the user feedback with the provided feedback.
+
+        Args:
+        feedback (str): The feedback to update.
+        """
         self.user_feedback = feedback
 
     def generate_new_content(self):
+        """
+        Generates new content based on the current state and user feedback.
+
+        Returns:
+        str: The generated content.
+        """
         prompt = f"Current state: {self.current_state}\nUser feedback: {self.user_feedback}\nGenerate new content:"
         return generate_content(prompt)
