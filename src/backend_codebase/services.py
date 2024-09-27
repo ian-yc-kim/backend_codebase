@@ -76,6 +76,20 @@ def generate_character_profile(character_name, traits, backstory):
 
 
 def generate_plot_twist(current_plot, user_suggestions):
+    """
+    Generate a plot twist based on the current plot and user suggestions.
+
+    Parameters:
+    current_plot (str): The current plot of the story.
+    user_suggestions (str): User-provided suggestions for the plot twist.
+
+    Returns:
+    str: The generated plot twist.
+
+    Raises:
+    ValueError: If any of the input parameters are empty.
+    RuntimeError: If the plot twist generation fails.
+    """
     if not current_plot or not user_suggestions:
         raise ValueError('All input parameters must be provided and non-empty.')
 
