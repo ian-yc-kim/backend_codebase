@@ -41,6 +41,18 @@ def generate_chapter():
 
 @views_bp.route('/generate/character', methods=['POST'])
 def generate_character():
+    """
+    Generate a new character profile based on the provided character name, traits, and backstory.
+
+    Parameters:
+    - character_name (str): The name of the character.
+    - traits (list): A list of traits that describe the character.
+    - backstory (str): The backstory of the character.
+
+    Returns:
+    - response (json): A JSON response containing the character ID, name, profile, and creation timestamp.
+    - HTTP Status Code: 201 if successful, 400 if required fields are missing, 500 if an error occurs.
+    """
     json_data = request.get_json()
     character_name = json_data.get('character_name')
     traits = json_data.get('traits')
