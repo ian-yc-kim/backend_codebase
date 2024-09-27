@@ -42,6 +42,21 @@ def generate_chapter_content(title, previous_content, user_prompts):
 
 
 def generate_character_profile(character_name, traits, backstory):
+    """
+    Generate a detailed character profile based on the character name, traits, and backstory.
+
+    Parameters:
+    character_name (str): The name of the character.
+    traits (str): The traits of the character.
+    backstory (str): The backstory of the character.
+
+    Returns:
+    str: The generated character profile.
+
+    Raises:
+    ValueError: If any of the input parameters are empty.
+    RuntimeError: If the profile generation fails.
+    """
     if not character_name or not traits or not backstory:
         raise ValueError('All input parameters must be provided and non-empty.')
 
