@@ -39,4 +39,31 @@ def test_login_user_success(client, init_database):
     data = response.get_json()
     assert 'token' in data
 
-# ... other tests remain unchanged
+
+def test_signup_user_validation(client):
+    # Test invalid username
+    response = client.post('/users', json={'username': 'ab', 'email': 'valid@example.com', 'password': 'Validpass1'})
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'Invalid username'
+
+    # Test invalid email
+    response = client.post('/users', json={'username': 'validuser', 'email': 'invalidemail', 'password': 'Validpass1'})
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'Invalid email address'
+
+    # Test invalid password
+    response = client.post('/users', json={'username': 'validuser', 'email': 'valid@example.com', 'password': 'short'})
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'Invalid password'
+
+
+def test_login_user_validation(client):
+    # Test invalid email
+    response = client.post('/sessions', json={'email': 'invalidemail', 'password': 'Validpass1'})
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'Invalid email address'
+
+    # Test invalid password
+    response = client.post('/sessions', json={'email': 'test@example.com', 'password': 'wrongpass'})
+    assert response.status_code == 401
+    assert response.get_json()['error'] == 'Invalid credentials'
