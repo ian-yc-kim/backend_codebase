@@ -24,10 +24,14 @@ def verify_password(username, password):
         return username
 
 # Database setup
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 app.Session = Session  # Add Session to app
+
+# Create all tables
+with app.app_context():
+    Base.metadata.create_all(engine)
 
 @app.route('/api/v1/user-inputs', methods=['POST'])
 @auth.login_required

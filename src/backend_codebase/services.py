@@ -24,3 +24,22 @@ def generate_chapter_content(title, previous_content, user_prompts):
         return response.choices[0].text.strip()
     except Exception as e:
         raise RuntimeError(f"Failed to generate content: {str(e)}")
+
+
+def generate_character_profile(character_name, traits, backstory):
+    if not character_name or not traits or not backstory:
+        raise ValueError('All input parameters must be provided and non-empty.')
+
+    prompt = f"Character Name: {character_name}\nTraits: {traits}\nBackstory: {backstory}\nGenerate a detailed character profile:"
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=1024,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate character profile: {str(e)}")

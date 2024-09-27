@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .services import generate_chapter_content
+from .services import generate_chapter_content, generate_character_profile
 from datetime import datetime
 import uuid
 
@@ -21,6 +21,28 @@ def generate_chapter():
             'chapter_id': str(uuid.uuid4()),  # Generate a unique chapter ID
             'title': title,
             'content': content,
+            'created_at': datetime.utcnow().isoformat() + 'Z'  # Use the current timestamp
+        }
+        return jsonify(response), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@views_bp.route('/generate/character', methods=['POST'])
+def generate_character():
+    json_data = request.get_json()
+    character_name = json_data.get('character_name')
+    traits = json_data.get('traits')
+    backstory = json_data.get('backstory')
+
+    if not character_name or not traits or not backstory:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    try:
+        profile = generate_character_profile(character_name, traits, backstory)
+        response = {
+            'character_id': str(uuid.uuid4()),  # Generate a unique character ID
+            'name': character_name,
+            'profile': profile,
             'created_at': datetime.utcnow().isoformat() + 'Z'  # Use the current timestamp
         }
         return jsonify(response), 201

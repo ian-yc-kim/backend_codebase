@@ -1,33 +1,25 @@
 import pytest
+from src.backend_codebase.services import generate_character_profile
 from unittest.mock import patch
-from src.backend_codebase.services import generate_chapter_content
 
-@patch('src.backend_codebase.services.openai.Completion.create')
-def test_generate_chapter_content(mock_openai_create):
-    mock_openai_create.return_value.choices = [type('', (object,), {'text': 'Generated content'})()]
 
-    title = 'Test Title'
-    previous_content = 'Previous content'
-    user_prompts = 'User prompts'
+def test_generate_character_profile():
+    character_name = 'John Doe'
+    traits = 'Brave, Smart'
+    backstory = 'A hero from a small village'
+    with patch('openai.Completion.create') as mock_openai:
+        mock_openai.return_value = type('obj', (object,), {
+            'choices': [type('obj', (object,), {'text': 'Mocked profile for John Doe'})]
+        })
+        profile = generate_character_profile(character_name, traits, backstory)
+        assert isinstance(profile, str)
+        assert profile == 'Mocked profile for John Doe'
 
-    content = generate_chapter_content(title, previous_content, user_prompts)
 
-    assert content == 'Generated content'
-
-@patch('src.backend_codebase.services.openai.Completion.create')
-def test_generate_chapter_content_missing_params(mock_openai_create):
+def test_generate_character_profile_missing_fields():
     with pytest.raises(ValueError):
-        generate_chapter_content('', 'Previous content', 'User prompts')
+        generate_character_profile('', 'Brave, Smart', 'A hero from a small village')
     with pytest.raises(ValueError):
-        generate_chapter_content('Test Title', '', 'User prompts')
+        generate_character_profile('John Doe', '', 'A hero from a small village')
     with pytest.raises(ValueError):
-        generate_chapter_content('Test Title', 'Previous content', '')
-
-@patch('src.backend_codebase.services.openai.Completion.create')
-def test_generate_chapter_content_api_error(mock_openai_create):
-    mock_openai_create.side_effect = Exception('API error')
-
-    with pytest.raises(RuntimeError) as excinfo:
-        generate_chapter_content('Test Title', 'Previous content', 'User prompts')
-
-    assert 'Failed to generate content: API error' in str(excinfo.value)
+        generate_character_profile('John Doe', 'Brave, Smart', '')

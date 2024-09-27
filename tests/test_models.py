@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from backend_codebase.models import Base, UserInput, NovelIteration
 import os
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 
