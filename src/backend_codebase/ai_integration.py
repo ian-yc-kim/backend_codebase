@@ -65,6 +65,15 @@ class OpenAI:
 openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 def generate_content(prompt):
+    """
+    Generates content based on the given prompt using OpenAI's GPT-4 model.
+
+    Args:
+    prompt (str): The prompt to generate content from.
+
+    Returns:
+    str: The generated content.
+    """
     return openai_client.chat_completions_create(
         model='gpt-4',
         messages=[{'role': 'user', 'content': prompt}],
