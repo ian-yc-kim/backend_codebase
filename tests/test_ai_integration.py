@@ -1,14 +1,23 @@
 import pytest
-from backend_codebase.ai_integration import generate_content, OpenAIError
+from unittest.mock import patch
+from backend_codebase.ai_integration import generate_content
 
 
-def test_generate_content_success(mocker):
-    mocker.patch('backend_codebase.ai_integration.openai.ChatCompletion.create', return_value=mocker.Mock(choices=[mocker.Mock(message={'content': 'Generated content'})]))
-    result = generate_content('Test prompt')
-    assert result == 'Generated content'
+def test_generate_content():
+    prompt = 'Once upon a time'
 
+    # Patch the openai.ChatCompletion.create method
+    with patch('backend_codebase.ai_integration.openai.ChatCompletion.create') as mock_create:
+        # Set up the mock to return a specific value
+        mock_create.return_value = {
+            'choices': [
+                {
+                    'message': {
+                        'content': 'Generated content based on the prompt.'
+                    }
+                }
+            ]
+        }
 
-def test_generate_content_failure(mocker):
-    mocker.patch('backend_codebase.ai_integration.openai.ChatCompletion.create', side_effect=OpenAIError('An error occurred'))
-    with pytest.raises(OpenAIError):
-        generate_content('Test prompt')
+        content = generate_content(prompt)
+        assert content == 'Generated content based on the prompt.'

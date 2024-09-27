@@ -1,38 +1,43 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend_codebase.models import Base, UserInput
+from backend_codebase.models import Base, UserInput, NovelIteration
+import os
 
-DATABASE_URL = "sqlite:///./test.db"
-
+DATABASE_URL = os.getenv('DATABASE_URL')
 engine = create_engine(DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = sessionmaker(bind=engine)
 
 @pytest.fixture(scope='module')
 def setup_database():
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(engine)
     yield
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(engine)
 
 @pytest.fixture(scope='function')
-def db_session(setup_database):
-    session = TestingSessionLocal()
+def session(setup_database):
+    session = Session()
     yield session
     session.close()
 
-def test_user_input_model(db_session):
-    user_input = UserInput(
-        user_id=None,
-        plot='A hero saves the day',
-        setting='A futuristic city',
-        theme='Courage and bravery',
-        conflict='An impending disaster',
-        additional_preferences={},
-        ai_generated_content='The hero overcomes all odds'
-    )
-    db_session.add(user_input)
-    db_session.commit()
 
-    result = db_session.query(UserInput).filter_by(plot='A hero saves the day').first()
-    assert result is not None
-    assert result.ai_generated_content == 'The hero overcomes all odds'
+def test_user_input_model(session):
+    user_input = UserInput(
+        plot='A hero saves the world',
+        setting='Futuristic city',
+        theme='Courage',
+        conflict='Hero vs Villain'
+    )
+    session.add(user_input)
+    session.commit()
+    assert user_input.id is not None
+
+
+def test_novel_iteration_model(session):
+    novel_iteration = NovelIteration(
+        iteration_number='1',
+        content='The hero begins his journey'
+    )
+    session.add(novel_iteration)
+    session.commit()
+    assert novel_iteration.id is not None

@@ -23,7 +23,7 @@ class OpenAI:
                     frequency_penalty=frequency_penalty,
                     presence_penalty=presence_penalty
                 )
-                return response.choices[0].message['content'].strip()
+                return response['choices'][0]['message']['content'].strip()
             except openai.error.OpenAIError as e:
                 if attempt < retries - 1:
                     time.sleep(delay)
