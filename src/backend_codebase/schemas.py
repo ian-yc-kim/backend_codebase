@@ -30,6 +30,16 @@ class UserInputSchema(Schema):
     updated_at = fields.DateTime(required=False, dump_only=True)
 
 class FeedbackSchema(Schema):
+    """
+    Schema for feedback data.
+
+    This schema is used to validate and serialize/deserialize feedback data for the backend system.
+
+    Fields:
+    - feedback (str): Feedback provided by the user. This field is required and must have at least 1 character.
+    - created_at (datetime): Timestamp when the feedback was created. This field is read-only.
+    - updated_at (datetime): Timestamp when the feedback was last updated. This field is read-only.
+    """
     feedback = fields.Str(required=True, validate=validate.Length(min=1))
     created_at = fields.DateTime(required=False, dump_only=True)
     updated_at = fields.DateTime(required=False, dump_only=True)
