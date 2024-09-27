@@ -174,3 +174,14 @@ def iterate_novel():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+    def main():
+        """
+        The main entry point of the application.
+
+        This function initializes and runs the Flask application.
+
+        Returns:
+            None
+        """
+        app.run(debug=True)
