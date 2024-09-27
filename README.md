@@ -22,6 +22,20 @@ To set up the backend subsystem, follow these steps:
 3. **Configure the Database**
    Update the database configuration in `config.py` to match your setup. The default configuration is set to connect to a PostgreSQL database.
 
+   ### Example Configuration
+   In the `config.py` file, you will find a class `TestConfig` which is used for testing purposes. For production, you should create a similar configuration class, for example, `ProductionConfig`, and set the `SQLALCHEMY_DATABASE_URI` to your PostgreSQL database URI.
+
+   ```python
+   class ProductionConfig:
+       SQLALCHEMY_DATABASE_URI = 'postgresql://backend_database:74171843-ff5b@10.138.0.4:5432/backend_database'
+       SQLALCHEMY_TRACK_MODIFICATIONS = False
+       SECRET_KEY = 'your_production_secret_key'
+   ```
+
+   - **SQLALCHEMY_DATABASE_URI**: This is the URI for your PostgreSQL database. It includes the username, password, host, port, and database name.
+   - **SQLALCHEMY_TRACK_MODIFICATIONS**: Set this to `False` to disable the modification tracking system, which is unnecessary and can add overhead.
+   - **SECRET_KEY**: A secret key for your application, used for session management and other security-related needs. Ensure this is kept secret and not hard-coded in production.
+
 4. **Run Migrations**
    Apply database migrations to set up the necessary tables:
    ```bash
