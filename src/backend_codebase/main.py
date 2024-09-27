@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, UserInput
+from .models import Base, UserInput, NovelIteration
 from .ai_integration import generate_content
 import os
 from dotenv import load_dotenv
@@ -27,6 +27,7 @@ def verify_password(username, password):
 DATABASE_URL = os.getenv('DATABASE_URL')
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
+app.Session = Session  # Add Session to app
 
 @app.route('/api/v1/user-inputs', methods=['POST'])
 @auth.login_required
@@ -76,9 +77,38 @@ def generate_content_endpoint():
 @app.route('/api/v1/latest-iteration', methods=['GET'])
 @auth.login_required
 def get_latest_iteration():
-    # Here you would retrieve the latest novel iteration from the database
-    # For now, we will just return a placeholder message
-    return jsonify({'message': 'Latest iteration retrieved successfully.', 'iteration': 'Placeholder for latest iteration'}), 200
+    session = Session()
+    latest_iteration = session.query(NovelIteration).order_by(NovelIteration.created_at.desc()).first()
+    session.close()
+    if (latest_iteration):
+        return jsonify({'message': 'Latest iteration retrieved successfully.', 'iteration': latest_iteration.content}), 200
+    else:
+        return jsonify({'message': 'No iterations found.'}), 404
+
+@app.route('/api/v1/iterate-novel', methods=['POST'])
+@auth.login_required
+def iterate_novel():
+    json_data = request.get_json()
+    input_text = json_data.get('input')
+    if not input_text:
+        return jsonify({'error': 'Input is required.'}), 400
+
+    session = Session()
+    latest_iteration = session.query(NovelIteration).order_by(NovelIteration.created_at.desc()).first()
+    current_state = latest_iteration.content if latest_iteration else ""
+
+    try:
+        new_content = generate_content(f"Current state: {current_state}\nUser input: {input_text}")
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    new_iteration = NovelIteration(iteration_number=str(int(latest_iteration.iteration_number) + 1 if latest_iteration else 1), content=new_content)
+    session.add(new_iteration)
+    session.commit()
+    session.refresh(new_iteration)
+    session.close()
+
+    return jsonify({'message': 'New iteration generated successfully.', 'iteration_id': new_iteration.id}), 201
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,24 +1,14 @@
 import pytest
-from src.backend_codebase.ai_integration import AIIntegration
-
-@pytest.fixture
-def ai_integration():
-    return AIIntegration()
+from backend_codebase.ai_integration import generate_content, OpenAIError
 
 
-def test_update_state(ai_integration):
-    ai_integration.update_state("New state")
-    assert ai_integration.current_state == "New state"
+def test_generate_content_success(mocker):
+    mocker.patch('backend_codebase.ai_integration.openai.ChatCompletion.create', return_value=mocker.Mock(choices=[mocker.Mock(message={'content': 'Generated content'})]))
+    result = generate_content('Test prompt')
+    assert result == 'Generated content'
 
 
-def test_update_feedback(ai_integration):
-    ai_integration.update_feedback("New feedback")
-    assert ai_integration.user_feedback == "New feedback"
-
-
-def test_generate_new_content(mocker, ai_integration):
-    mocker.patch('src.backend_codebase.ai_integration.generate_content', return_value="Generated content")
-    ai_integration.update_state("State")
-    ai_integration.update_feedback("Feedback")
-    new_content = ai_integration.generate_new_content()
-    assert new_content == "Generated content"
+def test_generate_content_failure(mocker):
+    mocker.patch('backend_codebase.ai_integration.openai.ChatCompletion.create', side_effect=OpenAIError('An error occurred'))
+    with pytest.raises(OpenAIError):
+        generate_content('Test prompt')

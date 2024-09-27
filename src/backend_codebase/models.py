@@ -19,3 +19,12 @@ class UserInput(Base):
     ai_generated_content = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class NovelIteration(Base):
+    __tablename__ = 'novel_iterations'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    iteration_number = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())

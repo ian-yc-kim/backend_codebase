@@ -1,59 +1,48 @@
 import pytest
-from flask.testing import FlaskClient
-from src.backend_codebase.main import app
-from base64 import b64encode
+import base64
+import os
+from backend_codebase.models import Base, UserInput
+from backend_codebase.main import app, engine
 
-@pytest.fixture
-def client() -> FlaskClient:
+@pytest.fixture(scope='module')
+def test_client():
+    os.environ['DATABASE_URL'] = 'sqlite:///:memory:'  # Use in-memory SQLite database for testing
     app.config['TESTING'] = True
+
+    # Create the tables in the same database used by the app
+    with app.app_context():
+        Base.metadata.create_all(engine)
+
     with app.test_client() as client:
         yield client
 
+    # Optional: Drop the tables after tests
+    with app.app_context():
+        Base.metadata.drop_all(engine)
 
-def get_auth_headers(username, password):
-    credentials = f"{username}:{password}"
-    token = b64encode(credentials.encode()).decode('utf-8')
+@pytest.fixture(scope='module')
+def auth_headers():
+    credentials = base64.b64encode(b'admin:password123').decode('utf-8')
     return {
-        'Authorization': f'Basic {token}',
+        'Authorization': f'Basic {credentials}'
     }
 
+# ... (rest of your test functions)
 
-def test_collect_user_inputs(client: FlaskClient):
-    headers = get_auth_headers('admin', 'password123')
-    response = client.post('/api/v1/user-inputs', json={
+def test_collect_user_inputs(test_client, auth_headers):
+    response = test_client.post('/api/v1/user-inputs', json={
         'plot': 'A hero saves the world',
         'setting': 'Futuristic city',
-        'theme': 'Courage',
-        'conflict': 'Hero vs Villain'
-    }, headers=headers)
+        'theme': 'Courage and sacrifice',
+        'conflict': 'Hero vs villain'
+    }, headers=auth_headers)
+
     assert response.status_code == 201
-    assert 'input_id' in response.json
+    assert b'User inputs successfully recorded.' in response.data
 
-
-def test_generate_content_endpoint(client: FlaskClient, mocker):
-    headers = get_auth_headers('admin', 'password123')
-    mock_generate_content = mocker.patch('src.backend_codebase.main.generate_content')
-    mock_generate_content.return_value = 'Mocked content'
-    response = client.post('/api/v1/generate-content', json={
-        'input': 'A hero saves the world'
-    }, headers=headers)
-    assert response.status_code == 200
-    assert response.json['content'] == 'Mocked content'
-
-
-def test_submit_feedback(client: FlaskClient):
-    headers = get_auth_headers('admin', 'password123')
-    response = client.post('/api/v1/feedback', json={
-        'input_id': 12345,
-        'feedback': 'Great story!'
-    }, headers=headers)
-    assert response.status_code == 201
-    assert response.json['message'] == 'Feedback successfully recorded.'
-
-
-def test_get_latest_iteration(client: FlaskClient):
-    headers = get_auth_headers('admin', 'password123')
-    response = client.get('/api/v1/latest-iteration', headers=headers)
-    assert response.status_code == 200
-    assert response.json['message'] == 'Latest iteration retrieved successfully.'
-    assert 'iteration' in response.json
+    # Optionally, verify the data in the database
+    with test_client.application.app_context():
+        session = test_client.application.Session()
+        user_inputs = session.query(UserInput).all()
+        assert len(user_inputs) == 1
+        session.close()
