@@ -1,18 +1,12 @@
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from unittest.mock import patch
 from backend_codebase.models import Base, UserInput
-import uuid
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-DATABASE_URL = os.getenv('DATABASE_URL')
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine)
 
 @pytest.fixture(scope='module')
 def app() -> Flask:
@@ -25,9 +19,11 @@ def client(app: Flask) -> FlaskClient:
 
 @pytest.fixture(scope='module')
 def init_db():
+    from backend_codebase.main import engine
     Base.metadata.create_all(engine)
     yield
     Base.metadata.drop_all(engine)
+
 
 def test_collect_user_inputs(client: FlaskClient, init_db):
     response = client.post('/api/v1/user-inputs', json={
@@ -48,3 +44,17 @@ def test_collect_user_inputs(client: FlaskClient, init_db):
     assert response.status_code == 400
     assert 'error' in response.json
     assert response.json['error'] == 'Missing required field: plot'
+
+
+def test_generate_content_endpoint(client: FlaskClient):
+    mock_response = {
+        'choices': [{
+            'text': 'Generated content'
+        }]
+    }
+
+    with patch('backend_codebase.ai_integration.openai.Completion.create', return_value=mock_response):
+        response = client.post('/generate-content', json={'input': 'Once upon a time'})
+        assert response.status_code == 200
+        assert 'content' in response.json
+        assert response.json['content'] == 'Generated content'

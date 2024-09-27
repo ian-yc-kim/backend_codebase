@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Base, UserInput
+from .ai_integration import generate_content
 import uuid
 import os
 from dotenv import load_dotenv
@@ -39,6 +40,12 @@ def collect_user_inputs():
     session.close()
 
     return jsonify({'message': 'User inputs successfully recorded.', 'input_id': user_input.id}), 201
+
+@app.route('/generate-content', methods=['POST'])
+def generate_content_endpoint():
+    user_input = request.json.get('input')
+    content = generate_content(user_input)
+    return jsonify({'content': content})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.backend_codebase.models import Base, UserInputs
+from src.backend_codebase.models import Base, UserInput
 
 DATABASE_URL = "postgresql://backend_database:74171843-ff5b@10.138.0.4:5432/backend_database"
 
@@ -27,7 +27,7 @@ def dbsession(engine, tables):
     connection.close()
 
 def test_user_inputs_model(dbsession):
-    new_input = UserInputs(
+    new_input = UserInput(
         user_id=None,
         plot="A plot",
         setting="A setting",
