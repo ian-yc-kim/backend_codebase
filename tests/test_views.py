@@ -1,37 +1,75 @@
 import pytest
 from flask import Flask
-from src.backend_codebase.views import views_bp
+import json
+import bcrypt
+
+from backend_codebase.views import views_bp
+from backend_codebase.models import User
+from backend_codebase import db  # Import the existing db instance
 
 @pytest.fixture
-def client():
+def app():
     app = Flask(__name__)
-    app.register_blueprint(views_bp)
     app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)  # Initialize the db with the app
+
+    with app.app_context():
+        db.create_all()
+
+    app.register_blueprint(views_bp)
+
+    yield app
+
+    # Clean up / reset resources for other tests
+    with app.app_context():
+        db.drop_all()
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+@pytest.fixture
+def user_data():
+    return {
+        'username': 'testuser',
+        'email': 'testuser@example.com',
+        'password': 'testpassword'
+    }
 
 
-def test_generate_plot_twist(client, mocker):
-    mock_generate_plot_twist = mocker.patch('src.backend_codebase.views.generate_plot_twist_service')
-    mock_generate_plot_twist.return_value = 'A surprising plot twist!'
-
-    response = client.post('/generate/plot-twist', json={
-        'current_plot': 'The hero is on a quest.',
-        'user_suggestions': 'Introduce a new villain.'
-    })
-
+def test_create_user(client, user_data):
+    response = client.post('/users', data=json.dumps(user_data), content_type='application/json')
     assert response.status_code == 201
     data = response.get_json()
-    assert 'plot_twist_id' in data
-    assert data['content'] == 'A surprising plot twist!'
-    assert 'created_at' in data
+    assert data['username'] == user_data['username']
+    assert data['email'] == user_data['email']
 
+    # Verify the user is in the database
+    with client.application.app_context():
+        user = db.session.query(User).filter_by(username=user_data['username']).first()
+        assert user is not None
+        assert bcrypt.checkpw(user_data['password'].encode('utf-8'), user.password_hash)
 
-def test_generate_plot_twist_missing_fields(client):
-    response = client.post('/generate/plot-twist', json={
-        'current_plot': 'The hero is on a quest.'
-    })
+    # Test duplicate username
+    response = client.post('/users', data=json.dumps(user_data), content_type='application/json')
+    assert response.status_code == 409
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Username or email already exists'
 
+    # Test duplicate email
+    user_data['username'] = 'newuser'
+    response = client.post('/users', data=json.dumps(user_data), content_type='application/json')
+    assert response.status_code == 409
+    data = response.get_json()
+    assert 'error' in data
+    assert data['error'] == 'Username or email already exists'
+
+    # Test missing fields
+    response = client.post('/users', data=json.dumps({}), content_type='application/json')
     assert response.status_code == 400
     data = response.get_json()
     assert 'error' in data

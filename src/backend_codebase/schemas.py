@@ -43,3 +43,24 @@ class FeedbackSchema(Schema):
     feedback = fields.Str(required=True, validate=validate.Length(min=1))
     created_at = fields.DateTime(required=False, dump_only=True)
     updated_at = fields.DateTime(required=False, dump_only=True)
+
+class UserSchema(Schema):
+    """
+    Schema for user data.
+
+    This schema is used to validate and serialize/deserialize user data for the backend system.
+
+    Fields:
+    - id (UUID): Unique identifier for the user. This field is read-only.
+    - username (str): Username of the user. This field is required and must have at least 1 character.
+    - email (str): Email address of the user. This field is required and must be a valid email address.
+    - password (str): Password of the user. This field is required and must have at least 8 characters.
+    - created_at (datetime): Timestamp when the user was created. This field is read-only.
+    - updated_at (datetime): Timestamp when the user was last updated. This field is read-only.
+    """
+    id = fields.UUID(required=False, dump_only=True)
+    username = fields.Str(required=True, validate=validate.Length(min=1))
+    email = fields.Email(required=True)
+    password = fields.Str(required=True, validate=validate.Length(min=8))
+    created_at = fields.DateTime(required=False, dump_only=True)
+    updated_at = fields.DateTime(required=False, dump_only=True)

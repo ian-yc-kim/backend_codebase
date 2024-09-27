@@ -2,6 +2,11 @@ from flask import Blueprint, request, jsonify
 from .services import generate_chapter_content, generate_character_profile, generate_plot_twist as generate_plot_twist_service
 from datetime import datetime
 import uuid
+from .models import User
+from .schemas import UserSchema
+from sqlalchemy.exc import IntegrityError
+from . import db
+import bcrypt
 
 views_bp = Blueprint('views', __name__)
 
@@ -102,4 +107,51 @@ def generate_plot_twist():
         }
         return jsonify(response), 201
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@views_bp.route('/users', methods=['POST'])
+def create_user():
+    """
+    Create a new user.
+
+    Parameters:
+    - username (str): The username of the user.
+    - email (str): The email address of the user.
+    - password (str): The password of the user.
+
+    Returns:
+    - response (json): A JSON response containing the user ID, username, email, and creation timestamp.
+    - HTTP Status Code: 201 if successful, 400 if required fields are missing, 409 if the username or email already exists, 500 if an error occurs.
+    """
+    json_data = request.get_json()
+    user_schema = UserSchema()
+    try:
+        user_data = user_schema.load(json_data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+    username = user_data['username']
+    email = user_data['email']
+    password = user_data['password']
+
+    # Hash the password
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+    new_user = User(username=username, email=email, password_hash=password_hash)
+
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        response = {
+            'user_id': str(new_user.id),
+            'username': new_user.username,
+            'email': new_user.email,
+            'created_at': new_user.created_at.isoformat() + 'Z'
+        }
+        return jsonify(response), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'error': 'Username or email already exists'}), 409
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
