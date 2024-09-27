@@ -7,6 +7,18 @@ views_bp = Blueprint('views', __name__)
 
 @views_bp.route('/generate/chapter', methods=['POST'])
 def generate_chapter():
+    """
+    Generate a new chapter based on the provided title, previous content, and user prompts.
+
+    Parameters:
+    - title (str): The title of the chapter.
+    - previous_content (str): The content of the previous chapter.
+    - user_prompts (list): A list of user prompts to guide the chapter generation.
+
+    Returns:
+    - response (json): A JSON response containing the chapter ID, title, content, and creation timestamp.
+    - HTTP Status Code: 201 if successful, 400 if required fields are missing, 500 if an error occurs.
+    """
     json_data = request.get_json()
     title = json_data.get('title')
     previous_content = json_data.get('previous_content')
