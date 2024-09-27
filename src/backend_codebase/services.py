@@ -8,6 +8,21 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 def generate_chapter_content(title, previous_content, user_prompts):
+    """
+    Generate the next chapter content based on the title, previous content, and user prompts.
+
+    Parameters:
+    title (str): The title of the chapter.
+    previous_content (str): The content of the previous chapter.
+    user_prompts (str): User-provided prompts for the next chapter.
+
+    Returns:
+    str: The generated content for the next chapter.
+
+    Raises:
+    ValueError: If any of the input parameters are empty.
+    RuntimeError: If the content generation fails.
+    """
     if not title or not previous_content or not user_prompts:
         raise ValueError('All input parameters must be provided and non-empty.')
 
