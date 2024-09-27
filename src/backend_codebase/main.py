@@ -99,6 +99,15 @@ def submit_feedback():
 @app.route('/api/v1/generate-content', methods=['POST'])
 @auth.login_required
 def generate_content_endpoint():
+    """
+    Generate content based on user input.
+
+    This function expects a JSON payload in the request body with an 'input' field containing the user's input text.
+    It uses the `generate_content` function to generate new content based on the input text and returns the generated content.
+
+    Returns:
+        Response: A JSON response containing the generated content, or an error message if the input is missing.
+    """
     json_data = request.get_json()
     input_text = json_data.get('input')
     if not input_text:
