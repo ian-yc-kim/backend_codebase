@@ -37,3 +37,18 @@ def test_users_table_columns(setup_database):
     columns = [row[0] for row in result]
     expected_columns = ['id', 'username', 'email', 'password_hash', 'created_at', 'updated_at']
     assert all(column in columns for column in expected_columns)
+
+
+def test_unique_constraints_on_users_table(setup_database):
+    session = setup_database
+    # Insert a user
+    session.execute(text("INSERT INTO users (username, email, password_hash) VALUES ('testuser', 'test@example.com', 'hashedpassword')"))
+    session.commit()
+    # Attempt to insert another user with the same username
+    with pytest.raises(Exception):
+        session.execute(text("INSERT INTO users (username, email, password_hash) VALUES ('testuser', 'test2@example.com', 'hashedpassword')"))
+        session.commit()
+    # Attempt to insert another user with the same email
+    with pytest.raises(Exception):
+        session.execute(text("INSERT INTO users (username, email, password_hash) VALUES ('testuser2', 'test@example.com', 'hashedpassword')"))
+        session.commit()
