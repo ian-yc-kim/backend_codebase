@@ -1,4 +1,6 @@
+import pytest
 from flask import Flask, request, jsonify
+from flask.testing import FlaskClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -50,3 +52,31 @@ def collect_user_inputs():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
+
+
+def test_collect_user_inputs(client):
+    response = client.post('/api/v1/user-inputs', json={
+        'plot': 'A thrilling adventure',
+        'setting': 'A distant planet',
+        'theme': 'Survival',
+        'conflict': 'Man vs Nature'
+    })
+    assert response.status_code == 201
+    assert response.json['message'] == 'User inputs successfully recorded.'
+    assert 'input_id' in response.json
+
+
+def test_collect_user_inputs_missing_field(client):
+    response = client.post('/api/v1/user-inputs', json={
+        'plot': 'A thrilling adventure',
+        'setting': 'A distant planet',
+        'theme': 'Survival'
+    })
+    assert response.status_code == 400
+    assert 'error' in response.json
