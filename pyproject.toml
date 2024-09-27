@@ -16,6 +16,7 @@ alembic = "^1.13.3"
 openai = "0.28"
 marshmallow = "^3.22.0"
 flask-httpauth = "^4.8.0"
+bcrypt = "^4.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
