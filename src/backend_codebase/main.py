@@ -76,6 +76,15 @@ def collect_user_inputs():
 @app.route('/api/v1/feedback', methods=['POST'])
 @auth.login_required
 def submit_feedback():
+    """
+    Submit feedback from the user and store it in the database.
+
+    This function expects a JSON payload in the request body that conforms to the FeedbackSchema.
+    It validates the JSON data, stores it in the database, and returns a success message.
+
+    Returns:
+        Response: A JSON response containing a success message, or an error message if validation fails.
+    """
     json_data = request.get_json()
     schema = FeedbackSchema()
     errors = schema.validate(json_data)
