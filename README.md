@@ -54,6 +54,72 @@ To set up the backend subsystem, follow these steps:
 
 - **User Authentication**: The system supports a login and signup mechanism. Ensure you have registered users before attempting to access protected endpoints.
 
+## Examples
+
+Here are some examples of how to interact with the API endpoints:
+
+### Example 1: User Registration
+
+**Request**:
+```http
+POST /api/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "securepassword"
+}
+```
+
+**Response**:
+```json
+{
+  "message": "User registered successfully."
+}
+```
+
+### Example 2: User Login
+
+**Request**:
+```http
+POST /api/login
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "securepassword"
+}
+```
+
+**Response**:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Example 3: Generate Content
+
+**Request**:
+```http
+POST /api/generate
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "prompt": "Once upon a time..."
+}
+```
+
+**Response**:
+```json
+{
+  "content": "Once upon a time, in a land far away, there was a..."
+}
+```
+
+These examples demonstrate how to use the API for user registration, login, and content generation. Ensure you replace `<token>` with the actual token received from the login response.
+
 ## Best Practices
 
 - **Environment Variables**: Use environment variables to manage sensitive information such as database credentials and API keys.
