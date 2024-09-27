@@ -46,6 +46,15 @@ with app.app_context():
 @app.route('/api/v1/user-inputs', methods=['POST'])
 @auth.login_required
 def collect_user_inputs():
+    """
+    Collect user inputs from the request and store them in the database.
+
+    This function expects a JSON payload in the request body that conforms to the UserInputSchema.
+    It validates the JSON data, stores it in the database, and returns a success message with the input ID.
+
+    Returns:
+        Response: A JSON response containing a success message and the input ID, or an error message if validation fails.
+    """
     json_data = request.get_json()
     schema = UserInputSchema()
     errors = schema.validate(json_data)
