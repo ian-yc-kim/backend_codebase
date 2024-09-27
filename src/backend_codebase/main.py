@@ -20,6 +20,16 @@ users = {
 
 @auth.verify_password
 def verify_password(username, password):
+    """
+    Verify the provided username and password.
+
+    Args:
+        username (str): The username to verify.
+        password (str): The password to verify.
+
+    Returns:
+        str: The username if verification is successful, None otherwise.
+    """
     if username in users and check_password_hash(users.get(username), password):
         return username
 
