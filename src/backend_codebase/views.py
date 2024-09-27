@@ -75,6 +75,17 @@ def generate_character():
 
 @views_bp.route('/generate/plot-twist', methods=['POST'])
 def generate_plot_twist():
+    """
+    Generate a plot twist based on the current plot and user suggestions.
+
+    Parameters:
+    - current_plot (str): The current state of the plot.
+    - user_suggestions (list): A list of user suggestions to guide the plot twist.
+
+    Returns:
+    - response (json): A JSON response containing the plot twist ID, content, and creation timestamp.
+    - HTTP Status Code: 201 if successful, 400 if required fields are missing, 500 if an error occurs.
+    """
     json_data = request.get_json()
     current_plot = json_data.get('current_plot')
     user_suggestions = json_data.get('user_suggestions')
