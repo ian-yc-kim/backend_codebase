@@ -1,7 +1,6 @@
 import pytest
 from flask import Flask
 from src.backend_codebase.views import views_bp
-from unittest.mock import patch
 
 @pytest.fixture
 def client():
@@ -12,27 +11,27 @@ def client():
         yield client
 
 
-def test_generate_character(client):
-    with patch('src.backend_codebase.views.generate_character_profile') as mock_generate:
-        mock_generate.return_value = 'This is a mocked character profile.'
-        response = client.post('/generate/character', json={
-            'character_name': 'John Doe',
-            'traits': 'Brave, Smart',
-            'backstory': 'A hero from a small village'
-        })
-        assert response.status_code == 201
-        data = response.get_json()
-        assert 'character_id' in data
-        assert data['name'] == 'John Doe'
-        assert data['profile'] == 'This is a mocked character profile.'
-        assert 'created_at' in data
+def test_generate_plot_twist(client, mocker):
+    mock_generate_plot_twist = mocker.patch('src.backend_codebase.views.generate_plot_twist_service')
+    mock_generate_plot_twist.return_value = 'A surprising plot twist!'
 
-
-def test_generate_character_missing_fields(client):
-    response = client.post('/generate/character', json={
-        'character_name': 'John Doe',
-        'traits': 'Brave, Smart'
+    response = client.post('/generate/plot-twist', json={
+        'current_plot': 'The hero is on a quest.',
+        'user_suggestions': 'Introduce a new villain.'
     })
+
+    assert response.status_code == 201
+    data = response.get_json()
+    assert 'plot_twist_id' in data
+    assert data['content'] == 'A surprising plot twist!'
+    assert 'created_at' in data
+
+
+def test_generate_plot_twist_missing_fields(client):
+    response = client.post('/generate/plot-twist', json={
+        'current_plot': 'The hero is on a quest.'
+    })
+
     assert response.status_code == 400
     data = response.get_json()
     assert 'error' in data

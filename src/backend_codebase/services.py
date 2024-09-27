@@ -43,3 +43,22 @@ def generate_character_profile(character_name, traits, backstory):
         return response.choices[0].text.strip()
     except Exception as e:
         raise RuntimeError(f"Failed to generate character profile: {str(e)}")
+
+
+def generate_plot_twist(current_plot, user_suggestions):
+    if not current_plot or not user_suggestions:
+        raise ValueError('All input parameters must be provided and non-empty.')
+
+    prompt = f"Current Plot: {current_plot}\nUser Suggestions: {user_suggestions}\nGenerate a plot twist:"
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=1024,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        raise RuntimeError(f"Failed to generate plot twist: {str(e)}")
