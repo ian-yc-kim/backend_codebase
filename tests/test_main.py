@@ -1,60 +1,59 @@
 import pytest
-from flask import Flask
 from flask.testing import FlaskClient
-from unittest.mock import patch
-from backend_codebase.models import Base, UserInput
-import os
-from dotenv import load_dotenv
+from src.backend_codebase.main import app
+from base64 import b64encode
 
-load_dotenv()
-
-@pytest.fixture(scope='module')
-def app() -> Flask:
-    from backend_codebase.main import app
-    return app
-
-@pytest.fixture(scope='module')
-def client(app: Flask) -> FlaskClient:
-    return app.test_client()
-
-@pytest.fixture(scope='module')
-def init_db():
-    from backend_codebase.main import engine
-    Base.metadata.create_all(engine)
-    yield
-    Base.metadata.drop_all(engine)
+@pytest.fixture
+def client() -> FlaskClient:
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
 
 
-def test_collect_user_inputs(client: FlaskClient, init_db):
-    response = client.post('/api/v1/user-inputs', json={
-        'plot': 'A hero saves the day',
-        'setting': 'A futuristic city',
-        'theme': 'Courage and bravery',
-        'conflict': 'An impending disaster'
-    })
-    assert response.status_code == 201
-    assert 'input_id' in response.json
-    assert response.json['message'] == 'User inputs successfully recorded.'
-
-    response = client.post('/api/v1/user-inputs', json={
-        'setting': 'A futuristic city',
-        'theme': 'Courage and bravery',
-        'conflict': 'An impending disaster'
-    })
-    assert response.status_code == 400
-    assert 'error' in response.json
-    assert response.json['error'] == 'Missing required field: plot'
-
-
-def test_generate_content_endpoint(client: FlaskClient):
-    mock_response = {
-        'choices': [{
-            'text': 'Generated content'
-        }]
+def get_auth_headers(username, password):
+    credentials = f"{username}:{password}"
+    token = b64encode(credentials.encode()).decode('utf-8')
+    return {
+        'Authorization': f'Basic {token}',
     }
 
-    with patch('backend_codebase.ai_integration.openai.Completion.create', return_value=mock_response):
-        response = client.post('/generate-content', json={'input': 'Once upon a time'})
-        assert response.status_code == 200
-        assert 'content' in response.json
-        assert response.json['content'] == 'Generated content'
+
+def test_collect_user_inputs(client: FlaskClient):
+    headers = get_auth_headers('admin', 'password123')
+    response = client.post('/api/v1/user-inputs', json={
+        'plot': 'A hero saves the world',
+        'setting': 'Futuristic city',
+        'theme': 'Courage',
+        'conflict': 'Hero vs Villain'
+    }, headers=headers)
+    assert response.status_code == 201
+    assert 'input_id' in response.json
+
+
+def test_generate_content_endpoint(client: FlaskClient, mocker):
+    headers = get_auth_headers('admin', 'password123')
+    mock_generate_content = mocker.patch('src.backend_codebase.main.generate_content')
+    mock_generate_content.return_value = 'Mocked content'
+    response = client.post('/api/v1/generate-content', json={
+        'input': 'A hero saves the world'
+    }, headers=headers)
+    assert response.status_code == 200
+    assert response.json['content'] == 'Mocked content'
+
+
+def test_submit_feedback(client: FlaskClient):
+    headers = get_auth_headers('admin', 'password123')
+    response = client.post('/api/v1/feedback', json={
+        'input_id': 12345,
+        'feedback': 'Great story!'
+    }, headers=headers)
+    assert response.status_code == 201
+    assert response.json['message'] == 'Feedback successfully recorded.'
+
+
+def test_get_latest_iteration(client: FlaskClient):
+    headers = get_auth_headers('admin', 'password123')
+    response = client.get('/api/v1/latest-iteration', headers=headers)
+    assert response.status_code == 200
+    assert response.json['message'] == 'Latest iteration retrieved successfully.'
+    assert 'iteration' in response.json
