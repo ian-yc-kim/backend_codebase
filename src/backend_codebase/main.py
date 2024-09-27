@@ -118,6 +118,14 @@ def generate_content_endpoint():
 @app.route('/api/v1/latest-iteration', methods=['GET'])
 @auth.login_required
 def get_latest_iteration():
+    """
+    Retrieve the latest iteration of the novel.
+
+    This function queries the database for the most recent iteration of the novel and returns its content.
+
+    Returns:
+        Response: A JSON response containing the latest iteration's content, or an error message if no iterations are found.
+    """
     session = Session()
     latest_iteration = session.query(NovelIteration).order_by(NovelIteration.created_at.desc()).first()
     session.close()
