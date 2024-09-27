@@ -3,26 +3,18 @@ from flask import Flask, request, jsonify
 from flask.testing import FlaskClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Text
+from src.backend_codebase.models import Base, UserInput
 import uuid
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-DATABASE_URL = 'postgresql://backend_database:74171843-ff5b@10.138.0.4:5432/backend_database'
+DATABASE_URL = os.getenv('DATABASE_URL')
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
-Base = declarative_base()
-
-class UserInput(Base):
-    __tablename__ = 'user_inputs'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(String, nullable=True)
-    plot = Column(Text, nullable=False)
-    setting = Column(Text, nullable=False)
-    theme = Column(Text, nullable=False)
-    conflict = Column(Text, nullable=False)
-    additional_preferences = Column(Text, nullable=True)
 
 Base.metadata.create_all(engine)
 
@@ -59,7 +51,6 @@ def client():
     with app.test_client() as client:
         yield client
 
-
 def test_collect_user_inputs(client):
     response = client.post('/api/v1/user-inputs', json={
         'plot': 'A thrilling adventure',
@@ -70,7 +61,6 @@ def test_collect_user_inputs(client):
     assert response.status_code == 201
     assert response.json['message'] == 'User inputs successfully recorded.'
     assert 'input_id' in response.json
-
 
 def test_collect_user_inputs_missing_field(client):
     response = client.post('/api/v1/user-inputs', json={
