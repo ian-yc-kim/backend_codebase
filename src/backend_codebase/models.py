@@ -5,7 +5,7 @@ import uuid
 
 Base = declarative_base()
 
-class UserInputs(Base):
+class UserInput(Base):
     __tablename__ = 'user_inputs'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
