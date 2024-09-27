@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from .services import generate_chapter_content, generate_character_profile, generate_plot_twist as generate_plot_twist_service
-from datetime import datetime
+from datetime import datetime, timedelta
 import uuid
 from .models import User
 from .schemas import UserSchema
 from sqlalchemy.exc import IntegrityError
 from . import db
 import bcrypt
+import jwt
 
 views_bp = Blueprint('views', __name__)
 
@@ -135,7 +136,7 @@ def create_user():
     password = user_data['password']
 
     # Hash the password
-    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     new_user = User(username=username, email=email, password_hash=password_hash)
 
@@ -154,4 +155,35 @@ def create_user():
         return jsonify({'error': 'Username or email already exists'}), 409
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@views_bp.route('/sessions', methods=['POST'])
+def login_user():
+    """
+    Log in a user.
+
+    Parameters:
+    - email (str): The email address of the user.
+    - password (str): The password of the user.
+
+    Returns:
+    - response (json): A JSON response containing the JWT token.
+    - HTTP Status Code: 200 if successful, 400 if required fields are missing, 401 if authentication fails, 500 if an error occurs.
+    """
+    json_data = request.get_json()
+    email = json_data.get('email')
+    password = json_data.get('password')
+
+    if not email or not password:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user is None or not bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    try:
+        token = jwt.encode({'user_id': str(user.id), 'exp': datetime.utcnow() + timedelta(hours=24)}, 'your_secret_key', algorithm='HS256')
+        return jsonify({'token': token}), 200
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
