@@ -1,6 +1,7 @@
 import openai
 import os
 from dotenv import load_dotenv
+import bcrypt
 
 load_dotenv()
 
@@ -106,3 +107,32 @@ def generate_plot_twist(current_plot, user_suggestions):
         return response.choices[0].text.strip()
     except Exception as e:
         raise RuntimeError(f"Failed to generate plot twist: {str(e)}")
+
+
+def hash_password(password):
+    """
+    Hash a password using bcrypt.
+
+    Parameters:
+    password (str): The password to hash.
+
+    Returns:
+    str: The hashed password.
+    """
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+def signup(username, password):
+    """
+    Signup a new user by storing their username and hashed password.
+
+    Parameters:
+    username (str): The username of the new user.
+    password (str): The password of the new user.
+
+    Returns:
+    dict: A dictionary containing the username and hashed password.
+    """
+    hashed_password = hash_password(password)
+    # Here you would typically store the username and hashed_password in the database
+    return {'username': username, 'hashed_password': hashed_password}
