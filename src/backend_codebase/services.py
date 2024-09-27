@@ -2,10 +2,14 @@ import openai
 import os
 from dotenv import load_dotenv
 import bcrypt
+import jwt
+from datetime import datetime, timedelta
 
 load_dotenv()
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
+JWT_SECRET = os.getenv('JWT_SECRET', 'your_jwt_secret')
+JWT_ALGORITHM = 'HS256'
 
 
 def generate_chapter_content(title, previous_content, user_prompts):
@@ -136,3 +140,44 @@ def signup(username, password):
     hashed_password = hash_password(password)
     # Here you would typically store the username and hashed_password in the database
     return {'username': username, 'hashed_password': hashed_password}
+
+
+def generate_token(username):
+    """
+    Generate a JWT token for a given username.
+
+    Parameters:
+    username (str): The username for which to generate the token.
+
+    Returns:
+    str: The generated JWT token.
+    """
+    payload = {
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def login(username, password):
+    """
+    Authenticate a user and return a JWT token if successful.
+
+    Parameters:
+    username (str): The username of the user.
+    password (str): The password of the user.
+
+    Returns:
+    dict: A dictionary containing the username and JWT token if authentication is successful.
+
+    Raises:
+    ValueError: If authentication fails.
+    """
+    # Here you would typically retrieve the hashed password from the database
+    stored_hashed_password = hash_password(password)  # This is just a placeholder
+
+    if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+        token = generate_token(username)
+        return {'username': username, 'token': token}
+    else:
+        raise ValueError('Invalid username or password')
