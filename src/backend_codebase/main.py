@@ -137,6 +137,19 @@ def get_latest_iteration():
 @app.route('/api/v1/iterate-novel', methods=['POST'])
 @auth.login_required
 def iterate_novel():
+    """
+    Generate a new iteration of the novel based on user input and the current state.
+
+    This function expects a JSON payload in the request body with an 'input' field containing the user's input text.
+    It retrieves the latest iteration of the novel from the database, appends the user input to the current state, and generates new content using the `generate_content` function.
+    The new content is then stored as a new iteration in the database.
+
+    Args:
+        json_data (dict): The JSON payload from the request containing the user's input text.
+
+    Returns:
+        Response: A JSON response containing a success message and the new iteration ID, or an error message if the input is missing or content generation fails.
+    """
     json_data = request.get_json()
     input_text = json_data.get('input')
     if not input_text:
