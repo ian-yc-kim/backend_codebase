@@ -37,6 +37,17 @@ class UserInput(Base):
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
 
 class NovelIteration(Base):
+    """
+    Represents an iteration of the novel content.
+
+    Attributes:
+    id (UUID): Unique identifier for the novel iteration.
+    iteration_number (str): The iteration number of the novel content.
+    content (str): The content of the novel for this iteration.
+    created_at (datetime): Timestamp when the novel iteration was created.
+    updated_at (datetime): Timestamp when the novel iteration was last updated.
+    """
+
     __tablename__ = 'novel_iterations'
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
