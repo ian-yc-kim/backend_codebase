@@ -1,40 +1,38 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.backend_codebase.models import Base, UserInput
+from backend_codebase.models import Base, UserInput
 
-DATABASE_URL = "postgresql://backend_database:74171843-ff5b@10.138.0.4:5432/backend_database"
+DATABASE_URL = "sqlite:///./test.db"
+
+engine = create_engine(DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 @pytest.fixture(scope='module')
-def engine():
-    return create_engine(DATABASE_URL)
-
-@pytest.fixture(scope='module')
-def tables(engine):
-    Base.metadata.create_all(engine)
+def setup_database():
+    Base.metadata.create_all(bind=engine)
     yield
-    Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope='function')
-def dbsession(engine, tables):
-    connection = engine.connect()
-    transaction = connection.begin()
-    Session = sessionmaker(bind=connection)
-    session = Session()
+def db_session(setup_database):
+    session = TestingSessionLocal()
     yield session
     session.close()
-    transaction.rollback()
-    connection.close()
 
-def test_user_inputs_model(dbsession):
-    new_input = UserInput(
+def test_user_input_model(db_session):
+    user_input = UserInput(
         user_id=None,
-        plot="A plot",
-        setting="A setting",
-        theme="A theme",
-        conflict="A conflict",
-        additional_preferences={"key": "value"}
+        plot='A hero saves the day',
+        setting='A futuristic city',
+        theme='Courage and bravery',
+        conflict='An impending disaster',
+        additional_preferences={},
+        ai_generated_content='The hero overcomes all odds'
     )
-    dbsession.add(new_input)
-    dbsession.commit()
-    assert new_input.id is not None
+    db_session.add(user_input)
+    db_session.commit()
+
+    result = db_session.query(UserInput).filter_by(plot='A hero saves the day').first()
+    assert result is not None
+    assert result.ai_generated_content == 'The hero overcomes all odds'

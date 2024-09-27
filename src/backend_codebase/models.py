@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Text, TIMESTAMP, func
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.types import JSON
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
@@ -14,6 +15,7 @@ class UserInput(Base):
     setting = Column(Text, nullable=False)
     theme = Column(Text, nullable=False)
     conflict = Column(Text, nullable=False)
-    additional_preferences = Column(JSONB, nullable=True)
+    additional_preferences = Column(JSON, nullable=True)
+    ai_generated_content = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
